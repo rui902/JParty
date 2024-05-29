@@ -109,21 +109,25 @@ class BoardWidget(QWidget):
 
         self.resizeEvent(None)
 
-        for x in range(Board.size[0]):
+        for x in range(self.game.get_size()[0]):
             self.grid_layout.setRowStretch(x, 1)
-        for y in range(Board.size[1] + 1):
+
+        for y in range(self.game.get_size()[1] + 1):
             self.grid_layout.setColumnStretch(y, 1)
 
-        for x in range(Board.size[0]):
-            for y in range(Board.size[1] + 1):
+        for x in range(self.game.get_size()[0]):
+            for y in range(self.game.get_size()[1] + 1):
                 if y == 0:
                     label = CategoryCard("")
                     self.grid_layout.addWidget(label, 0, x)
+
                 else:
                     if self.parent().host():
                         label = HostQuestionCard(game, None)
+
                     else:
                         label = QuestionCard(game, None)
+
                     self.question_labels.append(label)
                     self.grid_layout.addWidget(label, y, x)
 
@@ -132,8 +136,8 @@ class BoardWidget(QWidget):
 
     def load_round(self, round):
         gl = self.grid_layout
-        for x in range(Board.size[0]):
-            for y in range(Board.size[1] + 1):
+        for x in range(self.game.get_size()[0]):
+            for y in range(self.game.get_size()[1] + 1):
                 if y == 0:
                     # Categories
                     gl.itemAtPosition(y, x).widget().setText(round.categories[x])
@@ -151,8 +155,8 @@ class BoardWidget(QWidget):
 
     def clear(self):
         gl = self.grid_layout
-        for x in range(Board.size[0]):
-            for y in range(Board.size[1] + 1):
+        for x in range(self.game.get_size()[0]):
+            for y in range(self.game.get_size()[1] + 1):
                 if y == 0:
                     # Categories
                     gl.itemAtPosition(y, x).widget().setText("")

@@ -1,18 +1,17 @@
 import logging
+import os
+import socket
+from threading import Thread
+
 import tornado.escape
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 from tornado.options import define, options
 
-import os
-from threading import Thread
-import socket
-
+from jparty.constants import MAXPLAYERS, PORT
 from jparty.environ import root
 from jparty.game import Player
-from jparty.constants import MAXPLAYERS, PORT
-
 
 define("port", default=PORT, help="run on the given port", type=int)
 
@@ -146,20 +145,22 @@ class BuzzerController:
         self.game = game
         tornado.options.parse_command_line()
         self.app = Application(
-            self
+            self,
         )  # this is to remove sleep mode on Macbook network card
         self.port = options.port
+        self.address = "0.0.0.0"
         self.connected_players = []
         self.accepting_players = True
 
     def start(self, threaded=True, tries=0):
         try:
-            self.app.listen(self.port)
+            print("Listening on %s:%s" % (self.address, self.port))
+            self.app.listen(self.port, address=self.address)
         except OSError as e:
-            if tries>10:
+            if tries > 10:
                 raise Exception("Cannot find open port")
             self.port += 1
-            self.start(threaded, tries+1)
+            self.start(threaded, tries + 1)
             return
 
         if threaded:

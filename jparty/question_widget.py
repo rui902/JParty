@@ -33,7 +33,7 @@ class HostQuestionWidget(QuestionWidget):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
 
-        self.question_label.setText(question.text)
+        self.question_label.setText(f"Q: {question.text}\n\n${question.value}")
         self.main_layout.setStretchFactor(self.question_label, 6)
         self.main_layout.addSpacing(self.main_layout.contentsMargins().top())
         self.answer_label = MyLabel(question.answer, self.startFontSize, self)

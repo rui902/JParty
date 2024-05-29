@@ -55,17 +55,26 @@ def audio_error():
 def check_second_monitor():
     if len(QApplication.instance().screens()) < 2:
         logging.error("No two monitors")
-        QMessageBox.critical(
-            None,
-            "Two monitors needed!",
-            "JParty needs two separate displays. Please attach a second monitor or turn off mirroring and try again.",
-            buttons=QMessageBox.StandardButton.Abort,
-            defaultButton=QMessageBox.StandardButton.Abort,
-        )
-        sys.exit(1)
+        # QMessageBox.critical(
+        #     None,
+        #     "Two monitors needed!",
+        #     "JParty needs two separate displays. Please attach a second monitor or turn off mirroring and try again.",
+        #     buttons=QMessageBox.StandardButton.Abort,
+        #     defaultButton=QMessageBox.StandardButton.Abort,
+        # )
+        # sys.exit(1)
 
 
 def main():
+
+    print("")
+    print("---------------------")
+    print("For reference:")
+    print("- Spreadsheets (3x3):  1ey0g3dfWipGZrReAgyi5k-eRaTV82ZTycyDcioncHDU")
+    print("- Spreadsheets (6x5):  1-pCJ1ZCGG8s3DSWlapk2xiGM67l2J4kFeTY0bXdf0hQ")
+    print("- Local JSON (3x3)  :  /home/rcosta-ripcord/Downloads/demo-percona-game-v1.json")
+    print("---------------------")
+    print("")
 
     QApplication.setStyle(JPartyStyle())
     app = QApplication(sys.argv)

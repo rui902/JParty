@@ -228,7 +228,8 @@ class Welcome(StartWidget):
             else:
                 self.summary_trigger.emit("Game has blank questions")
 
-        except Exception:
+        except Exception as err:
+            logging.error("cannot get game", exc_info=err)
             self.summary_trigger.emit("Cannot get game")
 
         self.check_start()

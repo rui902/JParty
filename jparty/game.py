@@ -1,18 +1,17 @@
+import logging
+import os
+import sys
+import threading
+import time
+from collections.abc import Iterable
+from dataclasses import dataclass
+
+import simpleaudio as sa
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
 from PyQt6.QtWidgets import QInputDialog, QApplication
 
-
-import threading
-import time
-from dataclasses import dataclass
-import os
-import sys
-import simpleaudio as sa
-from collections.abc import Iterable
-import logging
-
-from jparty.utils import SongPlayer, resource_path, CompoundObject
 from jparty.constants import FJTIME, QUESTIONTIME
+from jparty.utils import SongPlayer, resource_path, CompoundObject
 
 
 class QuestionTimer(object):
@@ -128,23 +127,84 @@ class Question:
 
 class Board(object):
     size = (6, 5)
+    categories: list[str]
+    questions: list[Question]
+
+    q_matrix: list[list[Question]]
+    num_questions_per_category: int
 
     def __init__(self, categories, questions, dj=False):
         self.categories = categories
         self.dj = dj
-        if not questions is None:
-            self.questions = questions
-        else:
-            self.questions = []
+
+        self.questions = questions or []
+
+        self.num_questions_per_category = int(
+            len(self.questions) / len(self.categories)
+        )
+
+        self.size = (
+            self.num_questions_per_category,
+            self.num_categories,
+        )
+
+        self.q_matrix: list[list[Question]] = []
+        for c_idx, cat in enumerate(self.categories):
+            self.q_matrix.append([])
+            for q_idx in range(self.num_questions_per_category):
+                self.q_matrix[c_idx].append(self.questions[c_idx + q_idx])
+
+    @property
+    def num_categories(self):
+        return len(self.categories)
 
     def get_question(self, i, j):
+        try:
+            if isinstance(self.questions, list) and isinstance(self.questions[i], list):
+                return self.questions[i][j]
+
+        except Exception as err:
+            logging.error(f"Couldn't get question[{i}][{j}]", exc_info=err)
+
         for q in self.questions:
             if q.index == (i, j):
                 return q
+
         return None
 
+    @property
+    def num_questions(self):
+        return self.size[0] * self.size[1]
+
     def complete(self):
-        return len(self.questions) == 30
+        return len(self.questions) == self.num_questions
+
+    def get_matrix_dict(self):
+        matrix_dict: dict[str, list[dict]] = {}
+
+        for q in self.questions:
+            matrix_dict.setdefault(q.category, [])
+            matrix_dict[q.category].append(
+                {
+                    "text": q.text,
+                    "answer": q.answer,
+                    "value": q.value,
+                    "double_daily": q.dd,
+                }
+            )
+
+        return matrix_dict
+
+    def to_dict(self):
+        return {
+            "__metadata__": {
+                "complete": self.complete(),
+                "num_questions": self.num_questions,
+                "size": self.size,
+                "double_jeopardy": self.dj,
+            },
+            "data": self.get_matrix_dict(),
+        }
 
 
 class FinalBoard(Board):
@@ -161,9 +221,16 @@ class FinalBoard(Board):
 
 @dataclass
 class GameData:
-    rounds: list
+    rounds: list[Board]
     date: str
     comments: str
+
+    def to_dict(self):
+        return {
+            "comments": self.comments,
+            "date": self.date,
+            "rounds": [rnd.to_dict() for rnd in self.rounds],
+        }
 
 
 class Game(QObject):
@@ -255,6 +322,9 @@ class Game(QObject):
         self.buzz_trigger.connect(self.buzz)
         self.new_player_trigger.connect(self.new_player)
         self.toolate_trigger.connect(self.__toolate)
+
+    def get_size(self):
+        return self.current_round.size if self.current_round else Board.size
 
     def startable(self):
         return self.valid_game() and len(self.buzzer_controller.connected_players) > 0

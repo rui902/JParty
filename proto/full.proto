@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package jparty;
+
+message Question {
+  // Text to be shown in the question
+  string text = 1;
+
+  // Answer for the host to compare
+  string answer = 2;
+
+  // The value that will be assigned to this question (may have a default, and may be overriden in a custom game)
+  optional int32 value = 3;
+
+  // If this question is a daily double question or not
+  optional bool daily_double = 4;
+
+  // If this question has been used in the current game or not
+  optional bool complete = 5;
+}
+
+message Category {
+  // Title of this category
+  string name = 1;
+  // List of questions in this category
+  repeated Question questions = 2;
+  // Start value for the questions in this category (allows overriding the game/round default for a specific category)
+  optional int32 default_start_value = 3;
+}
+
+message Board {
+  // List of Categories (with questions inside)
+  repeated Category categories = 1;
+  // The money assigned to the first question of each category in this round (can be pre-defined or calculated in-game)
+  optional int32 default_start_value = 2;
+}
+
+message GameData {
+  // The title for this game
+  string title = 1;
+  // The date when this game was generated
+  optional string date = 2;
+  // How much will be the start_value for the first round (so that all values can be calculated in-game)
+  optional int32 default_start_value = 3;
+  // How much will the starting value of each round multiply by (e.g. with round_multiplier=2 -> round1[start_value]=$200 , round2[start_value]=$400)
+  optional int32 round_multiplier = 4;
+  // The list of Boards representing each individual round
+  repeated Board rounds = 5;
+}
